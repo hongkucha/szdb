@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true" >
+        <bitmap android:src="@drawable/sy_widget_ico_white_camera" />
+    </item>
+    <item android:state_selected="true" android:drawable="@drawable/sy_widget_ico_white_camera"/>
+    <item android:state_enabled="true" >
+        <bitmap android:src="@drawable/sy_widget_ico_orange_camera"/>
+        <!--<clip android:drawable="@drawable/sy_widget_ico_orange_camera" android:clipOrientation="vertical"/>-->
+        <!--<inset android:drawable="@drawable/sy_widget_ico_orange_save" />-->
+    </item>
+    <item >
+        <bitmap android:src="@drawable/sy_widget_ico_disable_camera" />
+    </item>
+</selector>
