@@ -13,12 +13,16 @@ import com.willemgeo.szdb.bean.DBH;
 import com.willemgeo.szdb.bean.JTCY;
 import com.willemgeo.szdb.bean.SYR;
 import com.willemgeo.szdb.dao.DBHDao;
+import com.willemgeo.szdb.dao.ImgDao;
 import com.willemgeo.szdb.dao.JTCYDao;
 import com.willemgeo.szdb.dao.SYRDao;
 
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH;
+import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH_DB;
 
 /**
  * Created by duboqun on 2019/6/3.
@@ -27,8 +31,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
 
     public static boolean isUpdate = false;
     private static DBHelper instance = null;
-    static final String DEFAULT_GDB_PATH = "/SYGIS/data/";
-    private static String fileRoute = Environment.getExternalStorageDirectory().getPath();
+    private static String fileRoute = Environment.getExternalStorageDirectory().getPath() +CT_DATA_PATH+CT_DATA_PATH_DB;
     private static final int DATABASE_VERSION = 9;
     private static String dbName = "db_2.db3";
 
@@ -100,4 +103,9 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
    /* public GZXSR createSketchDao(){
         return  new SketchDao(this);
     }*/
+
+   //pjh
+    public ImgDao createImgDao(){
+        return new ImgDao(this);
+    }
 }

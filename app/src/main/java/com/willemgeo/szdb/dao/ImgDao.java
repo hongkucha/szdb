@@ -3,6 +3,7 @@ package com.willemgeo.szdb.dao;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.willemgeo.szdb.bean.DBH;
 import com.willemgeo.szdb.bean.Img;
 import com.willemgeo.szdb.utils.DBHelper;
@@ -20,11 +21,11 @@ public class ImgDao {
     private static String TAG = Img.class.getSimpleName();
     private final DBHelper dbHelper;
 
-    private ImgDao(DBHelper db){
+    public ImgDao(DBHelper db){
         this.dbHelper = db;
     }
 
-    List<Img> findAll(){
+    public List<Img> findAll(){
         try {
             Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
             return dao.queryForAll();
@@ -35,7 +36,7 @@ public class ImgDao {
         }
     }
 
-    List<Img> findByCun(String cjbm){
+    public List<Img> findByCun(String cjbm){
 
         try {
             Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
@@ -46,7 +47,7 @@ public class ImgDao {
             return  new ArrayList<Img>();
         }
     }
-    Img findByZjbm(String zjbm){
+    public Img findByZjbm(String zjbm){
         try {
             Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
             List<Img> lst = dao.queryForEq("zjbm",zjbm);
@@ -63,8 +64,27 @@ public class ImgDao {
 
     }
 
+    public void addImg(Img info){
+        try {
+            Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
+            dao.create(info);
+        } catch (SQLException e) {
+            Log.e(TAG,"addImg"+e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
-
+    public void deleteById(int id) {
+        try {
+            Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
+            DeleteBuilder<Img,Integer> deleteBuilder =  dao.deleteBuilder();
+            deleteBuilder.where().eq("id",id);
+            int t = deleteBuilder.delete();
+        } catch (SQLException e) {
+            Log.e(TAG,"deleteImg"+e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
 
 }

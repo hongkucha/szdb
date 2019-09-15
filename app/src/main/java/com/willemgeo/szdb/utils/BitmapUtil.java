@@ -9,11 +9,17 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.willemgeo.szdb.bean.Img;
+import com.willemgeo.szdb.dao.ImgDao;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Date;
+
+import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH;
+import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH_IMG;
 
 /**
  * Created by lwy on 2018/7/4.
@@ -87,23 +93,59 @@ public class BitmapUtil {
     /**
      * 根据Img存储Bitmap
      */
-    public static Img saveBitmapInfo(Img info ,Bitmap bitmap){
-
+    public static Img saveBitmapInfo(Img info ,Bitmap bitmap,DBHelper db){
+        FileOutputStream fileOutputStream = null;
+        String path = "";
+        String name = "";
+        File imgFile = null;
         try{
             if(info.getImgpath() == null || info.getImgpath().isEmpty()){
-                String path = Environment.getExternalStorageDirectory()+"/SYGIS/IMG/"+info.getXjbm()+"/"+info.getCjbm()+"/"
-                +info.getZjhm()+"/"+info.getImgtype();
-                String fileName = info.getId()+".jpg";
-                File dir = new File(path);
-                if(!dir.exists()){
-                    dir.mkdir();
+                boolean shiwu = true;
+                //保存图片
+                try {
+                    path = Environment.getExternalStorageDirectory().getPath()
+                            + CT_DATA_PATH + CT_DATA_PATH_IMG +"/"+ info.getXjbm() + "/" + info.getCjbm() + "/"
+                            + info.getZjhm() + "/" + info.getImgtype();
+                    name = info.getId() + ".jpg";
+                    File dir = new File(path);
+                    if (!dir.exists()) {
+                        dir.mkdir();
+                    }
+                     imgFile = new File(path + "/" + name);
+                    fileOutputStream = new FileOutputStream(imgFile);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+                    fileOutputStream.flush();
+                    fileOutputStream.close();
+                }catch (Exception ex){
+                    shiwu = false;
+                }finally {
+                    if(fileOutputStream!=null){
+                        fileOutputStream.close();
+                    }
                 }
-                bitmap.
+                //存储信息到数据库
+                if(!shiwu){
+                    if(imgFile != null && imgFile.exists()){
+                        imgFile.delete();
+                    }
+                }else {
+                    try {
+                        ImgDao dao = db.createImgDao();
+                        info.setCreateTime(new Date());
+                        dao.addImg(info);
+                    }catch (Exception ex){
+                        if(imgFile != null && imgFile.exists()){
+                            imgFile.delete();
+                        }
+                    }
 
+                }
+
+                return info;
+            }else {
+                return null;
             }
 
-
-            return Img;
         }catch (Exception ex){
 
             ex.printStackTrace();
