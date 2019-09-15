@@ -1,5 +1,7 @@
 package com.willemgeo.szdb.bean;
 
+import java.util.Date;
+
 /**
  * 照片实体
  * Created by pjh on 2019/9/15.
@@ -13,6 +15,35 @@ public class Img {
     String imgtype = "";
     String imgpath = "";
     boolean isupload = false;
+    Date createTime ;//拍摄时间
+
+    //拍摄位置
+    double x = 0;
+    double y = 0;
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
 
     public String getId() {
         return id;
@@ -61,4 +92,7 @@ public class Img {
     public void setIsupload(boolean isupload) {
         this.isupload = isupload;
     }
+
+
+
 }
