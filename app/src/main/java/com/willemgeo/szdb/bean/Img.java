@@ -15,6 +15,9 @@ public class Img {
     String imgtype = "";
     String imgpath = "";
     boolean isupload = false;
+    String xjbm = "";
+    String cjbm = "";
+
     Date createTime ;//拍摄时间
 
     //拍摄位置
@@ -24,6 +27,24 @@ public class Img {
     public Date getCreateTime() {
         return createTime;
     }
+
+
+    public String getXjbm() {
+        return xjbm;
+    }
+
+    public void setXjbm(String xjbm) {
+        this.xjbm = xjbm;
+    }
+
+    public String getCjbm() {
+        return cjbm;
+    }
+
+    public void setCjbm(String cjbm) {
+        this.cjbm = cjbm;
+    }
+
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;

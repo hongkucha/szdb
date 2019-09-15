@@ -5,8 +5,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
 
+import com.willemgeo.szdb.bean.Img;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -76,5 +80,35 @@ public class BitmapUtil {
             bitmap = null;
         }
         return bitmap;
+    }
+
+
+    //pjh
+    /**
+     * 根据Img存储Bitmap
+     */
+    public static Img saveBitmapInfo(Img info ,Bitmap bitmap){
+
+        try{
+            if(info.getImgpath() == null || info.getImgpath().isEmpty()){
+                String path = Environment.getExternalStorageDirectory()+"/SYGIS/IMG/"+info.getXjbm()+"/"+info.getCjbm()+"/"
+                +info.getZjhm()+"/"+info.getImgtype();
+                String fileName = info.getId()+".jpg";
+                File dir = new File(path);
+                if(!dir.exists()){
+                    dir.mkdir();
+                }
+                bitmap.
+
+            }
+
+
+            return Img;
+        }catch (Exception ex){
+
+            ex.printStackTrace();
+            return  null;
+
+        }
     }
 }
