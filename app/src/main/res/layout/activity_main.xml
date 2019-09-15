@@ -6,28 +6,119 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!--保存-->
-    <TableLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TableRow>
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:textColor="@color/black"
+                android:textAlignment="center"
+                android:textSize="20dp"
+                android:text="@string/app_name"/>
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:layout_gravity="center"
+                        android:background="@color/bg_gray"
+                        android:textSize="15dp"
+                        android:text="请选择乡/镇:"/>
+                    <Spinner
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorAccent"
+                        android:layout_weight="4"
+                        android:textSize="15dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:layout_gravity="center"
+                        android:background="@color/bg_gray"
+                        android:textSize="15dp"
+                        android:text="请选择村/社区"/>
+                    <Spinner
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorAccent"
+                        android:layout_weight="4"
+                        android:textSize="15dp"/>
+                </TableRow>
+            </TableLayout>
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="低保人姓名"
+                        android:layout_weight="1"
+                        android:textColor="@color/black"
+                        android:textSize="15dp" />
+                    <EditText
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorAccent"
+                        android:layout_weight="10"
+                        android:textSize="15dp"/>
+                </TableRow>
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"
+                        android:textSize="15dp"
+                        android:text="身份证号"/>
+                    <EditText
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorAccent"
+                        android:layout_weight="10"
+                        android:textSize="15dp"/>
+                </TableRow>
+            </TableLayout>
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TableRow >
+                    <Button
+                        android:id="@+id/camera1_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_selector_color2"
+                        android:textColor="@drawable/button_selector_color2"
+                        android:text="拍摄照片"
+                        android:textSize="15dp"
+                        android:drawableStart="@drawable/sy_widget_button_camera"
+                        android:paddingLeft="50dp"
+                        android:paddingRight="50dp"/>
+                </TableRow>
+            </TableLayout>
             <Button
-                android:id="@+id/add_new_btn"
+                android:id="@+id/save_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:background="@drawable/button_selector_color2"
                 android:textColor="@drawable/button_selector_color2"
                 android:textSize="15dp"
-                android:text="新建档案"/>
-        </TableRow>
-        <TableRow>
-            <ListView
-                android:id="@+id/alllist"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-            </ListView>
-        </TableRow>
-    </TableLayout>
-
+                android:text="保存并上传"/>
+        </LinearLayout>
+    </ScrollView>
 </RelativeLayout>

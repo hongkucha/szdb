@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
 
         context = this;
         //选择按钮
-        ((Button) this.findViewById(R.id.add_new_btn)).setOnClickListener(camera_btn_Click);
+        //((Button) this.findViewById(R.id.add_new_btn)).setOnClickListener(camera_btn_Click);
 
     }
 
