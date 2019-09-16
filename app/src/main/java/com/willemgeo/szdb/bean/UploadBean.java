@@ -5,7 +5,6 @@ package com.willemgeo.szdb.bean;
  */
 
 public class UploadBean {
-    public class UploadBean {
 
         private int uploadProgress;// 上传进度
 
@@ -33,4 +32,3 @@ public class UploadBean {
         }
     }
 
-}
