@@ -1,9 +1,16 @@
 package com.willemgeo.szdb;
 
+import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,12 +20,17 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.willemgeo.szdb.adapter.CunSpinnerAdapter;
 import com.willemgeo.szdb.adapter.XianSpinnerAdapter;
 import com.willemgeo.szdb.bean.cun;
 import com.willemgeo.szdb.bean.xian;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH;
+import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH_IMG;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,12 +43,23 @@ public class MainActivity extends AppCompatActivity {
     public int selectType;
     public List<xian> xianList;
 
+    public String selectedXianName;
+    public String selectedXianCode;
+    public String selectedCunName;
+    public String selectedCunCode;
+
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 10013;
+    private static String fileRoute = Environment.getExternalStorageDirectory().getPath() + CT_DATA_PATH + CT_DATA_PATH_IMG;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         context = this;
+
+        /*申请权限*/
+        getPermissions();
 
         xian_spinner = (Spinner) this.findViewById(R.id.xian_name);
         cun_spinner = (Spinner) this.findViewById(R.id.cun_name);
@@ -55,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 初始化数据
+     * 初始化数据和文件目录
      */
     private void initData(){
         xianList = new ArrayList<xian>();
@@ -254,23 +277,67 @@ public class MainActivity extends AppCompatActivity {
         c = new cun("大宫帽村","211421214214");
         x.cunList.add(c);
         xianList.add(x);
+
+
+        File file = new File(fileRoute);
+        if (!file.exists())
+            file.mkdirs();
+        //创建所有目录
+        for(int i = 0;i<xianList.size();i++)
+        {
+            xian x1 = xianList.get(i);
+            file = new File(fileRoute+"/"+x1.XianCode);
+            if (!file.exists())
+                file.mkdirs();
+
+            for(int j = 0;j<x1.cunList.size();j++)
+            {
+                cun c1 = x1.cunList.get(j);
+
+                File file1 = new File(fileRoute+"/"+x1.XianCode+"/"+c1.CunCode);
+                if (!file1.exists())
+                    file1.mkdirs();
+            }
+        }
     }
 
     /**
      * 初始化界面元素
      */
+    private int xian_position;
     private void initView(){
-        XianSpinnerAdapter xianAdapter = new XianSpinnerAdapter(MainActivity.this,xianList);
-        /*mSpinnerSelf.setAdapter(adapter);
-        mSpinnerSelf.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        final XianSpinnerAdapter xianAdapter = new XianSpinnerAdapter(context,xianList);
+        xian_spinner.setAdapter(xianAdapter);
+        xian_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                ToastUtil.showShort(instance,((CarBean)adapter.getItem(pos)).toString());
+                selectedXianName = ((xian)xianAdapter.getItem(pos)).XianName.toString();
+                selectedXianCode = ((xian)xianAdapter.getItem(pos)).XianCode.toString();
+                xian_position = pos;
+
+                final CunSpinnerAdapter cunAdapter = new CunSpinnerAdapter(MainActivity.this,((xian)xianAdapter.getItem(pos)).cunList);
+                cun_spinner.setAdapter(cunAdapter);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
+
+
             }
-        });*/
+        });
+
+        cun_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                List<cun> cunList = ((xian)xianAdapter.getItem(xian_position)).cunList;
+                selectedCunName = ((cun)cunList.get(pos)).CunName.toString();
+                selectedCunCode = ((cun)cunList.get(pos)).CunCode.toString();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+
+            }
+        });
     }
 
     /**
@@ -282,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
             final String[] item = { "户口本", "身份证", "个人申请书" ,"核对承诺书" ,"入户调查表" ,"残疾证" ,"病例" ,"病例" ,"有折账号","土地使用证","其他证明","建档立卡户证明"};
             AlertDialog.Builder singleDialog = new AlertDialog.Builder(MainActivity.this);
             singleDialog.setIcon(R.mipmap.ic_launcher_round);
-            singleDialog.setTitle("单选 AlertDialog");
+            singleDialog.setTitle("选择拍照类型");
             singleDialog.setSingleChoiceItems(item, 0, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -293,6 +360,12 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     Toast.makeText(MainActivity.this, "你选择了：" + item[selectType], Toast.LENGTH_SHORT).show();
+
+                    /*开启拍照*/
+                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                        startActivityForResult(takePictureIntent, 123);
+                    }
                 }
             });
             singleDialog.show();
@@ -309,4 +382,70 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+
+    //权限申请自定义码
+    private final int GET_PERMISSION_REQUEST = 100;
+
+    /**
+     * 申请权限
+     */
+    private void getPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.RECORD_AUDIO)
+                            == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.CAMERA)
+                            == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS)
+                            == PackageManager.PERMISSION_GRANTED) {
+            } else {
+                Toast.makeText(this,"监督检查需要拍照录音权限",Toast.LENGTH_LONG).show();
+                //不具有获取权限，需要进行权限申请
+                this.requestPermissions( new String[]{
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
+                        Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.CAMERA}, GET_PERMISSION_REQUEST);
+            }
+        } else {
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == GET_PERMISSION_REQUEST) {
+            int size = 0;
+            if (grantResults.length >= 1) {
+                int writeResult = grantResults[0];
+                //读写内存权限
+                boolean writeGranted = writeResult == PackageManager.PERMISSION_GRANTED;//读写内存权限
+                if (!writeGranted) {
+                    size++;
+                }
+                //录音权限
+                int recordPermissionResult = grantResults[1];
+                boolean recordPermissionGranted = recordPermissionResult == PackageManager.PERMISSION_GRANTED;
+                if (!recordPermissionGranted) {
+                    size++;
+                }
+                //相机权限
+                int cameraPermissionResult = grantResults[2];
+                boolean cameraPermissionGranted = cameraPermissionResult == PackageManager.PERMISSION_GRANTED;
+                if (!cameraPermissionGranted) {
+                    size++;
+                }
+                if (size == 0) {
+
+                } else {
+                    Toast.makeText(this, "请到设置-权限管理中开启", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
 }
