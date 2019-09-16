@@ -102,7 +102,7 @@ public class BitmapUtil {
         try{
                 boolean shiwu = true;
                 //保存图片
-                try {
+                /*try {
                     xdPath = CT_DATA_PATH + CT_DATA_PATH_IMG +"/"+ info.getXjbm() + "/" + info.getCjbm() + "/"
                             + info.getZjhm() + "/" + info.getImgtype();
                     path = Environment.getExternalStorageDirectory().getPath() + xdPath;
@@ -123,7 +123,7 @@ public class BitmapUtil {
                     if(fileOutputStream!=null){
                         fileOutputStream.close();
                     }
-                }
+                }*/
                 //存储信息到数据库
                 if(!shiwu){
                     if(imgFile != null && imgFile.exists()){

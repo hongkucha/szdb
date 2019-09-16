@@ -32,16 +32,11 @@ import android.widget.Toast;
 
 import com.willemgeo.szdb.adapter.CunSpinnerAdapter;
 import com.willemgeo.szdb.adapter.XianSpinnerAdapter;
-<<<<<<< HEAD
 import com.willemgeo.szdb.bean.Img;
-=======
-import com.willemgeo.szdb.base.BaseResult;
-import com.willemgeo.szdb.bean.Img;
-import com.willemgeo.szdb.bean.JTCY;
->>>>>>> mydev
 import com.willemgeo.szdb.bean.cun;
 import com.willemgeo.szdb.bean.xian;
 import com.willemgeo.szdb.dao.ImgDao;
+import com.willemgeo.szdb.utils.BitmapUtil;
 import com.willemgeo.szdb.utils.DBConfig;
 import com.willemgeo.szdb.utils.DBHelper;
 
@@ -52,6 +47,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -81,7 +77,10 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 10013;
     private static String fileRoute = Environment.getExternalStorageDirectory().getPath() + CT_DATA_PATH + CT_DATA_PATH_IMG;
 
-    private Button btnGrid ;
+    private Button btnGrid;
+    private String picName;
+    private String picPath;
+    private DBHelper db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,12 +112,9 @@ public class MainActivity extends AppCompatActivity {
         initView();
 
         try {
-            DBHelper db = new DBHelper(getApplicationContext());
+            db = new DBHelper(getApplicationContext());
             ImgDao img = db.createImgDao();
-
             List<Img> lst = img.findAll();
-
-
             DBConfig.setInstance(new DBConfig(getApplicationContext()));
             DBConfig config = DBConfig.getInstance();
             Map map = config.getCJQY();
@@ -433,7 +429,9 @@ public class MainActivity extends AppCompatActivity {
 
                     /*开启拍照*/
                     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    Uri uri = Uri.fromFile(new File(url+"/1.png"));//根据图片路径生成一个uri
+                    picName = java.util.UUID.randomUUID().toString();
+                    picPath = CT_DATA_PATH + CT_DATA_PATH_IMG+"/"+selectedXianCode+"/"+selectedCunCode+"/"+sfz+"/"+picName+".jpg";
+                    Uri uri = Uri.fromFile(new File(url+"/"+picName+".jpg"));//根据图片路径生成一个uri
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,uri);//设置相机拍照图片保存的位置
                     ((Activity) context).startActivityForResult(takePictureIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
                 }
@@ -471,9 +469,18 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
 
             Img img = new Img();
+            img.setUid(picName);
             img.setDbrmc(dbr);
             img.setCjbm(selectedCunName);
+            img.setImgpath(picPath);
+            img.setImgtype("jpg");
+            img.setIsupload(false);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+            Date date = new Date(System.currentTimeMillis());
+            img.setCreateTime(date);
 
+            //开始存储信息
+            BitmapUtil.saveBitmapInfo(img,null,db);
         }
     }
 
@@ -541,46 +548,5 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-    }
-
-    protected byte[] toByteArray(InputStream in) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024 * 4];
-        int n = 0;
-        try {
-            while ((n = in.read(buffer)) != -1) {
-                out.write(buffer, 0, n);
-            }
-        } catch (IOException e) {
-
-        }
-        return out.toByteArray();
-    }
-
-    /**
-     * 压缩图片
-     *
-     * @param bitmap   源图片
-     * @param width    想要的宽度
-     * @param height   想要的高度
-     * @param isAdjust 是否自动调整尺寸, true图片就不会拉伸，false严格按照你的尺寸压缩
-     * @return Bitmap
-     */
-    protected Bitmap reduce(Bitmap bitmap, int width, int height, boolean isAdjust) {
-        // 如果想要的宽度和高度都比源图片小，就不压缩了，直接返回原图
-        if (bitmap.getWidth() < width && bitmap.getHeight() < height) {
-            return bitmap;
-        }
-        // 根据想要的尺寸精确计算压缩比例, 方法详解：public BigDecimal divide(BigDecimal divisor, int scale, int roundingMode);
-        // scale表示要保留的小数位, roundingMode表示如何处理多余的小数位，BigDecimal.ROUND_DOWN表示自动舍弃
-        float sx = new BigDecimal(width).divide(new BigDecimal(bitmap.getWidth()), 4, BigDecimal.ROUND_DOWN).floatValue();
-        float sy = new BigDecimal(height).divide(new BigDecimal(bitmap.getHeight()), 4, BigDecimal.ROUND_DOWN).floatValue();
-        if (isAdjust) {// 如果想自动调整比例，不至于图片会拉伸
-            sx = (sx < sy ? sx : sy);
-            sy = sx;// 哪个比例小一点，就用哪个比例
-        }
-        Matrix matrix = new Matrix();
-        matrix.postScale(sx, sy);// 调用api中的方法进行压缩，就大功告成了
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 }
