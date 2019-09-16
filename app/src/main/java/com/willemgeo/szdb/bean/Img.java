@@ -1,28 +1,50 @@
 package com.willemgeo.szdb.bean;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
 import java.util.Date;
 
 /**
  * 照片实体
  * Created by pjh on 2019/9/15.
  */
-
+@DatabaseTable(tableName = "tb_dbh")
 public class Img {
-
-    String id = "";
+    @DatabaseField(columnName = "id", generatedId = true)
+    long id ;
+    @DatabaseField(columnName = "uid")
+    String uid = "";
+    @DatabaseField(columnName = "zjhm")
     String zjhm = "";
+    @DatabaseField(columnName = "dbrmc")
     String dbrmc = "";
+    @DatabaseField(columnName = "imgtype")
     String imgtype = "";
+    @DatabaseField(columnName = "imgpath")
     String imgpath = "";
+    @DatabaseField(columnName = "isupload")
     boolean isupload = false;
+    @DatabaseField(columnName = "xjbm")
     String xjbm = "";
+    @DatabaseField(columnName = "cjbm")
     String cjbm = "";
-
+    @DatabaseField(columnName = "createTime")
     Date createTime ;//拍摄时间
 
     //拍摄位置
+    @DatabaseField(columnName = "x")
     double x = 0;
+    @DatabaseField(columnName = "y")
     double y = 0;
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
 
     public Date getCreateTime() {
         return createTime;
@@ -66,11 +88,11 @@ public class Img {
         this.y = y;
     }
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
     }
 
