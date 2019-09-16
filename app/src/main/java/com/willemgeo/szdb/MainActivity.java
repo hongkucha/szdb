@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -22,12 +23,18 @@ import android.widget.Toast;
 
 import com.willemgeo.szdb.adapter.CunSpinnerAdapter;
 import com.willemgeo.szdb.adapter.XianSpinnerAdapter;
+import com.willemgeo.szdb.bean.Img;
 import com.willemgeo.szdb.bean.cun;
 import com.willemgeo.szdb.bean.xian;
+import com.willemgeo.szdb.dao.ImgDao;
+import com.willemgeo.szdb.utils.DBConfig;
+import com.willemgeo.szdb.utils.DBHelper;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH;
 import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH_IMG;
@@ -51,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 10013;
     private static String fileRoute = Environment.getExternalStorageDirectory().getPath() + CT_DATA_PATH + CT_DATA_PATH_IMG;
 
+    private Button btnGrid ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,15 +75,37 @@ public class MainActivity extends AppCompatActivity {
         dbr_txt = (EditText) this.findViewById(R.id.dbr_name);
         sfz_txt = (EditText) this.findViewById(R.id.sfz_number);
 
+
         //拍照按钮
         ((Button) this.findViewById(R.id.camera_btn)).setOnClickListener(camera_btn_Click);
 
         //保存上传按钮
         ((Button) this.findViewById(R.id.save_btn)).setOnClickListener(save_btn_Click);
 
+        btnGrid = findViewById(R.id.grid_btn);
+        btnGrid.setOnClickListener(grid_btn_click);
+
         initData();
 
         initView();
+
+        try {
+            DBHelper db = new DBHelper(getApplicationContext());
+            ImgDao img = db.createImgDao();
+
+            List<Img> lst = img.findAll();
+
+
+            DBConfig.setInstance(new DBConfig(getApplicationContext()));
+            DBConfig config = DBConfig.getInstance();
+            Map map = config.getCJQY();
+            Map mapX = config.getXJQY();
+
+            String ss ="";
+        }catch (Exception ex){
+            Log.e("ORM",""+ex.getMessage());
+        }
+
     }
 
     /**
@@ -382,6 +413,17 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    /**
+     * 查看img list 按钮
+     */
+    private View.OnClickListener grid_btn_click = new View.OnClickListener() {
+        @Override
+        public void onClick(View arg0) {
+            Intent intent = new Intent(getApplicationContext(),GridActivity.class);
+            startActivity(intent);
+        }
+    };
+
 
     //权限申请自定义码
     private final int GET_PERMISSION_REQUEST = 100;

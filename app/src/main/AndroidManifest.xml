@@ -42,6 +42,7 @@
         <activity android:name=".tdsrPopActivity"></activity>
         <activity android:name=".ylbzPopActivity"></activity>
         <activity android:name=".zcxsrPopActivity"></activity>
+        <activity android:name=".GridActivity"></activity>
     </application>
 
 </manifest>

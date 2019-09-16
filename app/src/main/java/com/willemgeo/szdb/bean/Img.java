@@ -9,7 +9,7 @@ import java.util.Date;
  * 照片实体
  * Created by pjh on 2019/9/15.
  */
-@DatabaseTable(tableName = "tb_dbh")
+@DatabaseTable(tableName = "Img")
 public class Img {
     @DatabaseField(columnName = "id", generatedId = true)
     long id ;

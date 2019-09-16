@@ -98,14 +98,15 @@ public class BitmapUtil {
         String path = "";
         String name = "";
         File imgFile = null;
+        String xdPath = "";
         try{
-            if(info.getImgpath() == null || info.getImgpath().isEmpty()){
                 boolean shiwu = true;
                 //保存图片
                 try {
-                    path = Environment.getExternalStorageDirectory().getPath()
-                            + CT_DATA_PATH + CT_DATA_PATH_IMG +"/"+ info.getXjbm() + "/" + info.getCjbm() + "/"
+                    xdPath = CT_DATA_PATH + CT_DATA_PATH_IMG +"/"+ info.getXjbm() + "/" + info.getCjbm() + "/"
                             + info.getZjhm() + "/" + info.getImgtype();
+                    path = Environment.getExternalStorageDirectory().getPath() + xdPath;
+
                     name = info.getId() + ".jpg";
                     File dir = new File(path);
                     if (!dir.exists()) {
@@ -132,6 +133,7 @@ public class BitmapUtil {
                     try {
                         ImgDao dao = db.createImgDao();
                         info.setCreateTime(new Date());
+                        info.setImgpath(xdPath);
                         dao.addImg(info);
                     }catch (Exception ex){
                         if(imgFile != null && imgFile.exists()){
@@ -142,9 +144,7 @@ public class BitmapUtil {
                 }
 
                 return info;
-            }else {
-                return null;
-            }
+
 
         }catch (Exception ex){
 
