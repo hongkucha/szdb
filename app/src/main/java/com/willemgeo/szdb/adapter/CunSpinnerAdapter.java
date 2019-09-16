@@ -8,6 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.willemgeo.szdb.R;
+import com.willemgeo.szdb.bean.cun;
 import com.willemgeo.szdb.bean.xian;
 
 import java.util.List;
@@ -16,13 +17,13 @@ import java.util.List;
  * Created by Administrator on 2017/12/8.
  */
 
-public class XianSpinnerAdapter extends BaseAdapter {
+public class CunSpinnerAdapter extends BaseAdapter {
 
-    List<xian> mList;
+    List<cun> mList;
     Context context;
     private LayoutInflater mLayoutInflater;
 
-    public XianSpinnerAdapter(Context context, List<xian> mList) {
+    public CunSpinnerAdapter(Context context, List<cun> mList) {
         super();
         this.mList = mList;
         this.context = context;
@@ -48,7 +49,7 @@ public class XianSpinnerAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if(convertView == null){
             convertView = mLayoutInflater.inflate(R.layout.sy_spinner_item, null);
-            ((TextView)convertView.findViewById(R.id.sy_spinner_text)).setText(this.mList.get(position).XianName);
+            ((TextView)convertView.findViewById(R.id.sy_spinner_text)).setText(this.mList.get(position).CunName);
             convertView.setTag(this.mList.get(position));
         }
         return convertView;
