@@ -35,6 +35,17 @@ public class ImgDao {
             return  new ArrayList<Img>();
         }
     }
+    public List<Img> findIsNotUpload(){
+        try{
+            Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
+            return dao.queryForEq("isupload",false);
+        }catch (Exception e){
+            Log.e(TAG,"findIsNotUpload"+e.getMessage());
+            e.printStackTrace();
+            return  new ArrayList<Img>();
+        }
+    }
+
 
     public List<Img> findByCun(String cjbm){
 
