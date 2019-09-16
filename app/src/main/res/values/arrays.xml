@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="photo_types">
+        <item>户口本</item>
+        <item>身份证</item>
+        <item>个人申请书</item>
+        <item>核对承诺书</item>
+        <item>入户调查表</item>
+        <item>残疾证</item>
+        <item>病例</item>
+        <item>有折账号</item>
+        <item>土地使用证</item>
+        <item>其他证明</item>
+        <item>建档立卡户证明</item>
+    </string-array>
+</resources>
