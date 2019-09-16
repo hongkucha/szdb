@@ -1,18 +1,28 @@
 package com.willemgeo.szdb;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.location.Location;
+import android.media.Image;
+import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -22,11 +32,21 @@ import android.widget.Toast;
 
 import com.willemgeo.szdb.adapter.CunSpinnerAdapter;
 import com.willemgeo.szdb.adapter.XianSpinnerAdapter;
+import com.willemgeo.szdb.base.BaseResult;
+import com.willemgeo.szdb.bean.Img;
+import com.willemgeo.szdb.bean.JTCY;
 import com.willemgeo.szdb.bean.cun;
 import com.willemgeo.szdb.bean.xian;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.willemgeo.szdb.base.Constants.CT_DATA_PATH;
@@ -40,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
     public Spinner cun_spinner;
     public EditText dbr_txt;
     public EditText sfz_txt;
+    public String dbr="";
+    public String sfz="";
     public int selectType;
     public List<xian> xianList;
 
@@ -346,7 +368,11 @@ public class MainActivity extends AppCompatActivity {
     private View.OnClickListener camera_btn_Click = new View.OnClickListener() {
         @Override
         public void onClick(View arg0) {
-            final String[] item = { "户口本", "身份证", "个人申请书" ,"核对承诺书" ,"入户调查表" ,"残疾证" ,"病例" ,"病例" ,"有折账号","土地使用证","其他证明","建档立卡户证明"};
+            /*获取低保人信息和身份证信息*/
+            dbr = dbr_txt.getText().toString();
+            sfz = sfz_txt.getText().toString();
+
+            final String[] item = { "户口本", "身份证", "个人申请书" ,"核对承诺书" ,"入户调查表" ,"残疾证" ,"病例" ,"有折账号","土地使用证","其他证明","建档立卡户证明"};
             AlertDialog.Builder singleDialog = new AlertDialog.Builder(MainActivity.this);
             singleDialog.setIcon(R.mipmap.ic_launcher_round);
             singleDialog.setTitle("选择拍照类型");
@@ -361,11 +387,23 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     Toast.makeText(MainActivity.this, "你选择了：" + item[selectType], Toast.LENGTH_SHORT).show();
 
+                    /*判断身份证路径层级是否存在*/
+                    String url = fileRoute+"/"+selectedXianCode+"/"+selectedCunCode+"/"+sfz;
+                    File file = new File(url);
+                    if (!file.exists())
+                        file.mkdirs();
+
+                    /*判断照片类型路径层级是否存在*/
+                    url = url+"/"+item[selectType];
+                    file = new File(url);
+                    if (!file.exists())
+                        file.mkdirs();
+
                     /*开启拍照*/
                     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                        startActivityForResult(takePictureIntent, 123);
-                    }
+                    Uri uri = Uri.fromFile(new File(url+"/1.png"));//根据图片路径生成一个uri
+                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,uri);//设置相机拍照图片保存的位置
+                    ((Activity) context).startActivityForResult(takePictureIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
                 }
             });
             singleDialog.show();
@@ -383,12 +421,25 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    //权限申请自定义码
-    private final int GET_PERMISSION_REQUEST = 100;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // TODO Auto-generated method stub
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+
+            Img img = new Img();
+            img.setDbrmc(dbr);
+            img.setCjbm(selectedCunName);
+
+        }
+    }
+
 
     /**
      * 申请权限
      */
+    //权限申请自定义码
+    private final int GET_PERMISSION_REQUEST = 100;
     private void getPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
@@ -447,5 +498,46 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    protected byte[] toByteArray(InputStream in) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024 * 4];
+        int n = 0;
+        try {
+            while ((n = in.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+            }
+        } catch (IOException e) {
+
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * 压缩图片
+     *
+     * @param bitmap   源图片
+     * @param width    想要的宽度
+     * @param height   想要的高度
+     * @param isAdjust 是否自动调整尺寸, true图片就不会拉伸，false严格按照你的尺寸压缩
+     * @return Bitmap
+     */
+    protected Bitmap reduce(Bitmap bitmap, int width, int height, boolean isAdjust) {
+        // 如果想要的宽度和高度都比源图片小，就不压缩了，直接返回原图
+        if (bitmap.getWidth() < width && bitmap.getHeight() < height) {
+            return bitmap;
+        }
+        // 根据想要的尺寸精确计算压缩比例, 方法详解：public BigDecimal divide(BigDecimal divisor, int scale, int roundingMode);
+        // scale表示要保留的小数位, roundingMode表示如何处理多余的小数位，BigDecimal.ROUND_DOWN表示自动舍弃
+        float sx = new BigDecimal(width).divide(new BigDecimal(bitmap.getWidth()), 4, BigDecimal.ROUND_DOWN).floatValue();
+        float sy = new BigDecimal(height).divide(new BigDecimal(bitmap.getHeight()), 4, BigDecimal.ROUND_DOWN).floatValue();
+        if (isAdjust) {// 如果想自动调整比例，不至于图片会拉伸
+            sx = (sx < sy ? sx : sy);
+            sy = sx;// 哪个比例小一点，就用哪个比例
+        }
+        Matrix matrix = new Matrix();
+        matrix.postScale(sx, sy);// 调用api中的方法进行压缩，就大功告成了
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 }
