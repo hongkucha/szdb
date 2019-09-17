@@ -24,6 +24,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -84,8 +85,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static String TAG = MainActivity.class.getSimpleName();
 
-    private Double latitude = null;
-    private Double longitude = null;
+    private Double latitude = Double.NaN;
+    private Double longitude = Double.NaN;
     private Location location = null;
     private GpsReceiver gpsReceiver = new GpsReceiver();
 
@@ -640,55 +641,69 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
+    final String[] item = { "户口本", "身份证", "个人申请书" ,"核对承诺书" ,"入户调查表" ,"残疾证" ,"病例" ,"有折账号","土地使用证","其他证明","建档立卡户证明"};
     /**
      * 选择点按钮
      */
     private View.OnClickListener camera_btn_Click = new View.OnClickListener() {
         @Override
         public void onClick(View arg0) {
-            /*获取低保人信息和身份证信息*/
-            dbr = dbr_txt.getText().toString();
-            sfz = sfz_txt.getText().toString();
+            try {
 
-            final String[] item = { "户口本", "身份证", "个人申请书" ,"核对承诺书" ,"入户调查表" ,"残疾证" ,"病例" ,"有折账号","土地使用证","其他证明","建档立卡户证明"};
-            AlertDialog.Builder singleDialog = new AlertDialog.Builder(MainActivity.this);
-            singleDialog.setIcon(R.mipmap.ic_launcher_round);
-            singleDialog.setTitle("选择拍照类型");
-            singleDialog.setSingleChoiceItems(item, 0, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    selectType = which;
+            /*获取低保人信息和身份证信息*/
+                dbr = dbr_txt.getText().toString();
+                sfz = sfz_txt.getText().toString();
+                if(dbr.trim().isEmpty() || sfz.trim().isEmpty()){
+                    Toast.makeText(getApplicationContext(),"请先填写身份信息。",Toast.LENGTH_SHORT).show();
+                    return;
                 }
-            });
-            singleDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    Toast.makeText(MainActivity.this, "你选择了：" + item[selectType], Toast.LENGTH_SHORT).show();
+
+                AlertDialog.Builder singleDialog = new AlertDialog.Builder(MainActivity.this);
+                singleDialog.setIcon(R.mipmap.ic_launcher_round);
+                singleDialog.setTitle("选择拍照类型");
+                singleDialog.setSingleChoiceItems(item, 0, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        selectType = which;
+                    }
+                });
+                singleDialog.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(MainActivity.this, "你选择了：" + item[selectType], Toast.LENGTH_SHORT).show();
 
                     /*判断身份证路径层级是否存在*/
-                    String url = fileRoute+"/"+selectedXianCode+"/"+selectedCunCode+"/"+sfz;
-                    File file = new File(url);
-                    if (!file.exists())
-                        file.mkdirs();
+                        String url = fileRoute + "/" + selectedXianCode + "/" + selectedCunCode + "/" + sfz;
+                        File file = new File(url);
+                        if (!file.exists())
+                            file.mkdirs();
 
                     /*判断照片类型路径层级是否存在*/
-                    url = url+"/"+item[selectType];
-                    file = new File(url);
-                    if (!file.exists())
-                        file.mkdirs();
+                        url = url + "/" + item[selectType];
+                        file = new File(url);
+                        if (!file.exists())
+                            file.mkdirs();
 
                     /*开启拍照*/
-                    Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    picName = java.util.UUID.randomUUID().toString();
-                    picPath = CT_DATA_PATH + CT_DATA_PATH_IMG+"/"+selectedXianCode+"/"+selectedCunCode+"/"+sfz+"/"+picName+".jpg";
-                    Uri uri = Uri.fromFile(new File(url+"/"+picName+".jpg"));//根据图片路径生成一个uri
-                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,uri);//设置相机拍照图片保存的位置
-                    ((Activity) context).startActivityForResult(takePictureIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-                }
-            });
-            singleDialog.show();
+                        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
+
+                        picName = java.util.UUID.randomUUID().toString();
+                        picPath = CT_DATA_PATH + CT_DATA_PATH_IMG + "/" + selectedXianCode + "/" + selectedCunCode + "/" + sfz + "/" + item[selectType] + "/" + picName + ".jpg";
+                        //Uri uri = Uri.fromFile(new File(url+"/"+picName+".jpg"));//根据图片路径生成一个uri
+                        File photo = new File(url + "/" + picName + ".jpg");
+
+                        Uri photoUri = FileProvider.getUriForFile(getApplicationContext(), getPackageName() + ".fileprovider", photo);
+
+                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);//设置相机拍照图片保存的位置
+
+                        ((Activity) context).startActivityForResult(takePictureIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+                    }
+                });
+                singleDialog.show();
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
         }
     };
 
@@ -717,23 +732,55 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         // TODO Auto-generated method stub
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE  && resultCode!= 0) {
 
             Img img = new Img();
             img.setUid(picName);
-            img.setDbrmc(dbr);
-            img.setCjbm(selectedCunName);
-            img.setImgpath(picPath);
-            img.setImgtype("jpg");
-            img.setIsupload(false);
-            img.setX(latitude);
-            img.setY(longitude);
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
-            Date date = new Date(System.currentTimeMillis());
-            img.setCreateTime(date);
+            try {
+                img.setDbrmc(dbr);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setCjbm(selectedCunCode);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setXjbm(selectedXianCode);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setZjhm(sfz);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setImgpath(picPath);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setImgtype(item[selectType]);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setIsupload(false);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setX(latitude);
+            } catch (Exception ex) {
+            }
+            try {
+                img.setY(longitude);
+            } catch (Exception ex) {
+            }
+            try {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
+                Date date = new Date(System.currentTimeMillis());
+                img.setCreateTime(date);
+            } catch (Exception ex) {
+            }
 
             //开始存储信息
-            BitmapUtil.saveBitmapInfo(img,null,db);
+            BitmapUtil.saveBitmapInfo(img, null, db);
         }
 
         if(requestCode == 1001){
@@ -767,7 +814,7 @@ public class MainActivity extends AppCompatActivity {
                             Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS)
                             == PackageManager.PERMISSION_GRANTED) {
             } else {
-                Toast.makeText(this,"监督检查需要拍照录音权限",Toast.LENGTH_LONG).show();
+                Toast.makeText(this,"监督检查需要拍照录音权限",Toast.LENGTH_SHORT).show();
                 //不具有获取权限，需要进行权限申请
                 this.requestPermissions( new String[]{
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -822,5 +869,20 @@ public class MainActivity extends AppCompatActivity {
             longitude = bundle.getDouble("longitude");
             location = bundle.getParcelable("Location");
         }
+    }
+
+    long timems = 0;
+    @Override
+    public void onBackPressed() {
+
+
+            if(Math.abs(timems - new Date().getTime())>2000) {
+                Toast.makeText(context, "再按一次退出程序", Toast.LENGTH_SHORT).show();
+                timems = new Date().getTime();
+            }else {
+                super.onBackPressed();
+            }
+
+
     }
 }
