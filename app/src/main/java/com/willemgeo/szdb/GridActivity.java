@@ -120,11 +120,6 @@ public class GridActivity extends Activity {
                     files.add(filePath);
                 }
             }
-            files.add("/sdcard/MICE/IMG/IMG_8825.JPG");
-            files.add("/sdcard/MICE/IMG/IMG_8826.JPG");
-            files.add("/sdcard/MICE/IMG/IMG_8827.JPG");
-
-
             //UploadServerUtils.uploadLogFiles(CT_URL_SERVER+Constants.CT_URL_UPLOAD,files,"/MICE/IMG",imgs,"1234");
            try {
                upload(files,imgs);
