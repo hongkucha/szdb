@@ -121,19 +121,13 @@
                 </TableRow>
             </TableLayout>
             <Button
-                android:id="@+id/save_btn"
+                android:id="@+id/grid_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/button_selector_color2"
                 android:textColor="@drawable/button_selector_color2"
                 android:textSize="15dp"
-                android:text="保存"/>
-            <Button
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="查看全部照片"
-                android:id="@+id/grid_btn"
-                />
+                android:text="查看全部照片"/>
         </LinearLayout>
     </ScrollView>
 </RelativeLayout>
