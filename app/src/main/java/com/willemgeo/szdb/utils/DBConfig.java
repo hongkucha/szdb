@@ -175,4 +175,44 @@ public class DBConfig {
 
     }
 
+    public static String GetServerUrl()  {
+        String FileDir = Environment.getExternalStorageDirectory().getPath()+CT_DATA_PATH+CT_DATA_PATH_IP;
+        File dir = new File(FileDir);
+        File[] files = dir.listFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+                if(pathname.getName().toLowerCase().endsWith("txt")){
+                    return true;
+                }
+                return false;
+            }
+        });
+        if(files== null ||  files.length<1){
+            Log.e("服务器地址","未发现服务器地址文件");
+            return "";
+        }else {
+            BufferedReader reader = null;
+            try{
+                reader = new BufferedReader(new InputStreamReader(new FileInputStream(files[0])));
+                String str = reader.readLine();
+                reader.close();
+                return str;
+
+            }catch (Exception ex){
+                Log.e("服务器地址","服务器地址文件读取"+ex.getMessage());
+                if(reader!= null){
+                    try {
+                        reader.close();
+                    }catch (Exception ex2){
+                        Log.e("服务器地址","服务器地址文件读取"+ex2.getMessage());
+                    }
+                }
+                return "";
+            }
+
+        }
+
+
+    }
 }

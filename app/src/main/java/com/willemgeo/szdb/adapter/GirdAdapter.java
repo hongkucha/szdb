@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -21,11 +22,12 @@ import java.util.List;
  * Created by pjh on 2019/9/16.
  */
 
-public class GirdAdapter extends BaseAdapter {
+public class GirdAdapter extends BaseAdapter implements AbsListView.OnScrollListener {
 
     List<Img> lst;
     Context context;
 
+    List<Bitmap>  bitmap = null;
 
     public GirdAdapter(Context applicationContext, List<Img> lst) {
         this.lst = lst;
@@ -64,19 +66,32 @@ public class GirdAdapter extends BaseAdapter {
             TextView tvType = convertView.findViewById(R.id.text_type_c);
             tvType.setText(img.getImgtype());
             ImageView imageView = convertView.findViewById(R.id.image);
+            imageView.setMaxHeight(90);
 
             String imgPath  = Environment.getExternalStorageDirectory().getPath() + "/" + img.getImgpath();
             File file = new File(imgPath);
-            Bitmap bitmap = null;
+            Bitmap bitmap;
             if(file.isFile() && file.exists()){
                 bitmap = BitmapFactory.decodeFile(imgPath);
             }else {
                 bitmap = BitmapFactory.decodeResource(context.getResources(),R.drawable.timg);
             }
             imageView.setImageBitmap(bitmap);
+
+
         }catch (Exception ex){
             Log.e("GirdAdapter",""+ex.getMessage());
         }
         return convertView;
+    }
+
+    @Override
+    public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+    }
+
+    @Override
+    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
     }
 }

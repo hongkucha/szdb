@@ -1,29 +1,29 @@
 package com.willemgeo.szdb;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.Toast;
 
-import com.willemgeo.szdb.adapter.GirdAdapter;
-import com.willemgeo.szdb.base.Constants;
+import com.willemgeo.szdb.adapter.GridAsyncAdapter;
 import com.willemgeo.szdb.bean.Img;
 import com.willemgeo.szdb.dao.ImgDao;
 import com.willemgeo.szdb.utils.DBHelper;
-import com.willemgeo.szdb.utils.FileUtil;
 import com.willemgeo.szdb.utils.OKHttpUtils;
 import com.willemgeo.szdb.utils.ProgressListener;
-import com.willemgeo.szdb.utils.UploadServerUtils;
 import com.willemgeo.szdb.utils.impl.UIProgressListener;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,6 +33,7 @@ import okhttp3.Response;
 
 import static com.willemgeo.szdb.base.Constants.CT_URL_SERVER;
 import static com.willemgeo.szdb.base.Constants.CT_URL_UPLOAD;
+import static com.willemgeo.szdb.utils.DBConfig.GetServerUrl;
 
 
 /**
@@ -42,11 +43,11 @@ import static com.willemgeo.szdb.base.Constants.CT_URL_UPLOAD;
 public class GridActivity extends Activity {
 
 
-
-
+    Context context;
 
     public GridActivity() {
         super();
+
     }
 
     @Override
@@ -60,6 +61,7 @@ public class GridActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+        context = getApplicationContext();
     }
 
     @Override
@@ -95,16 +97,66 @@ public class GridActivity extends Activity {
 
     //初始化
     private void init() {
-        mGridView = findViewById(R.id.imggrid);
-        mBtnUpdate = findViewById(R.id.btnupdate);
+        try {
+            mGridView = findViewById(R.id.imggrid);
+            mBtnUpdate = findViewById(R.id.btnupdate);
 
-        dbHelper = new DBHelper(getApplicationContext());
-        ImgDao dao = dbHelper.createImgDao();
-        List<Img> lst = dao.findAll();
-        GirdAdapter adapter = new GirdAdapter(getApplicationContext() ,lst);
-        mGridView.setAdapter(adapter);
-        mBtnUpdate.setOnClickListener(listener);
+            dbHelper = new DBHelper(getApplicationContext());
+            ImgDao dao = dbHelper.createImgDao();
+            lstAdapter = dao.findAll();
+             adapter = new GridAsyncAdapter(getApplicationContext(), mGridView, lstAdapter);
+            mGridView.setAdapter(adapter);
+
+            mGridView.setOnItemLongClickListener(itemLongClickListener);
+            mBtnUpdate.setOnClickListener(listener);
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
     }
+    static int itemPosition = 0;
+    List<Img> lstAdapter ;
+    GridAsyncAdapter adapter;
+    AlertDialog alertDialog1;
+    AdapterView.OnItemLongClickListener itemLongClickListener = new AdapterView.OnItemLongClickListener() {
+        @Override
+        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+            itemPosition = position;
+
+            DeleteItemAndReflashGird();
+
+
+            return false;
+        }
+    };
+
+    void DeleteItemAndReflashGird(){
+        try {
+            Img img = (Img) mGridView.getAdapter().getItem(itemPosition);
+            ImgDao imgDao = dbHelper.createImgDao();
+            imgDao.deleteById((int) img.getId());
+
+            String filePath = Environment.getExternalStorageDirectory().getPath()
+                    + "/" + img.getImgpath();
+            File file = new File(filePath);
+            if (file.exists()) {
+                file.delete();
+            }
+            if (lstAdapter != null && lstAdapter.size() > 0) {
+                lstAdapter.remove(itemPosition);
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+            }
+
+            Toast.makeText(context,"删除完毕",Toast.LENGTH_LONG).show();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+    }
+
 
     View.OnClickListener listener = new View.OnClickListener() {
         @Override
@@ -174,9 +226,16 @@ public class GridActivity extends Activity {
             }
         };
 
+        String url = CT_URL_SERVER+ CT_URL_UPLOAD;
+        String urlServerFile = GetServerUrl();
+        if(urlServerFile!= null && !urlServerFile.isEmpty()){
+
+            url = urlServerFile + CT_URL_UPLOAD;
+        }
+
 
         //开始Post请求,上传文件
-        OKHttpUtils.doPostRequest(CT_URL_SERVER+ CT_URL_UPLOAD, files,imgs, uiProgressRequestListener, new Callback() {
+        OKHttpUtils.doPostRequest(url, files,imgs, uiProgressRequestListener, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 Log.i("TAG", "error------> "+e.getMessage());
