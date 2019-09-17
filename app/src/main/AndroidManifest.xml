@@ -44,6 +44,7 @@
         <activity android:name=".ylbzPopActivity"></activity>
         <activity android:name=".zcxsrPopActivity"></activity>
         <activity android:name=".GridActivity"></activity>
+        <service android:name="com.willemgeo.szdb.service.GpsService" />
     </application>
 
 </manifest>
