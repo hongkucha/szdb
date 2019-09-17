@@ -98,7 +98,6 @@ public class BitmapUtil {
         String path = "";
         String name = "";
         File imgFile = null;
-        String xdPath = "";
         try{
                 boolean shiwu = true;
                 //保存图片
@@ -133,7 +132,6 @@ public class BitmapUtil {
                     try {
                         ImgDao dao = db.createImgDao();
                         info.setCreateTime(new Date());
-                        info.setImgpath(xdPath);
                         dao.addImg(info);
                     }catch (Exception ex){
                         if(imgFile != null && imgFile.exists()){
