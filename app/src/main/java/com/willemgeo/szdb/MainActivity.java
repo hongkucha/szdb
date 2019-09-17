@@ -5,20 +5,24 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.location.Location;
+import android.location.LocationManager;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,17 +40,12 @@ import com.willemgeo.szdb.bean.Img;
 import com.willemgeo.szdb.bean.cun;
 import com.willemgeo.szdb.bean.xian;
 import com.willemgeo.szdb.dao.ImgDao;
+import com.willemgeo.szdb.service.GpsService;
 import com.willemgeo.szdb.utils.BitmapUtil;
 import com.willemgeo.szdb.utils.DBConfig;
 import com.willemgeo.szdb.utils.DBHelper;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,9 +80,18 @@ public class MainActivity extends AppCompatActivity {
     private String picName;
     private String picPath;
     private DBHelper db;
+    private boolean startGps = false;
+
+    private static String TAG = MainActivity.class.getSimpleName();
+
+    private Double latitude = null;
+    private Double longitude = null;
+    private Location location = null;
+    private GpsReceiver gpsReceiver = new GpsReceiver();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -101,11 +109,10 @@ public class MainActivity extends AppCompatActivity {
         //拍照按钮
         ((Button) this.findViewById(R.id.camera_btn)).setOnClickListener(camera_btn_Click);
 
-        //保存上传按钮
-        ((Button) this.findViewById(R.id.save_btn)).setOnClickListener(save_btn_Click);
-
         btnGrid = findViewById(R.id.grid_btn);
         btnGrid.setOnClickListener(grid_btn_click);
+
+        initGpsService();
 
         initData();
 
@@ -123,6 +130,28 @@ public class MainActivity extends AppCompatActivity {
             String ss ="";
         }catch (Exception ex){
             Log.e("ORM",""+ex.getMessage());
+        }
+
+    }
+
+    /**
+     * 初始化GPS服务
+     */
+    private void initGpsService() {
+        android.util.Log.i(TAG, "initGpsService");
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Toast.makeText(this, "请开启GPS导航...", Toast.LENGTH_SHORT).show();
+            // 返回开启GPS导航设置界面
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivityForResult(intent, 1001);
+        } else {
+            startGps = true;
+            Intent gpsService = new Intent(MainActivity.this, GpsService.class);
+            MainActivity.this.startService(gpsService);
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("com.esri.androidStatistics.service.GpsService");
+            MainActivity.this.registerReceiver(gpsReceiver, filter);
         }
 
     }
@@ -328,6 +357,228 @@ public class MainActivity extends AppCompatActivity {
         x.cunList.add(c);
         xianList.add(x);
 
+        x = new xian("王宝镇","211421114");
+        c = new cun("王宝镇","211421114000");
+        x.cunList.add(c);
+        c = new cun("王宝村","211421114200");
+        x.cunList.add(c);
+        c = new cun("北偏坡村","211421114201");
+        x.cunList.add(c);
+        c = new cun("黄罗山村","211421114202");
+        x.cunList.add(c);
+        c = new cun("张呆子村","211421114203");
+        x.cunList.add(c);
+        c = new cun("西潘村","211421114204");
+        x.cunList.add(c);
+        c = new cun("西孙村","211421114205");
+        x.cunList.add(c);
+        c = new cun("平房村","211421114206");
+        x.cunList.add(c);
+        c = new cun("娄家屯村","211421114207");
+        x.cunList.add(c);
+        c = new cun("吕贡村","211421114208");
+        x.cunList.add(c);
+        c = new cun("王汉村","211421114209");
+        x.cunList.add(c);
+        c = new cun("揣家村","211421114210");
+        x.cunList.add(c);
+        xianList.add(x);
+
+        x = new xian("王宝镇","211421114");
+        c = new cun("王宝镇","211421114000");
+        x.cunList.add(c);
+        c = new cun("王宝村","211421114200");
+        x.cunList.add(c);
+        c = new cun("北偏坡村","211421114201");
+        x.cunList.add(c);
+        c = new cun("黄罗山村","211421114202");
+        x.cunList.add(c);
+        c = new cun("张呆子村","211421114203");
+        x.cunList.add(c);
+        c = new cun("西潘村","211421114204");
+        x.cunList.add(c);
+        c = new cun("西孙村","211421114205");
+        x.cunList.add(c);
+        c = new cun("平房村","211421114206");
+        x.cunList.add(c);
+        c = new cun("娄家屯村","211421114207");
+        x.cunList.add(c);
+        c = new cun("吕贡村","211421114208");
+        x.cunList.add(c);
+        c = new cun("王汉村","211421114209");
+        x.cunList.add(c);
+        c = new cun("揣家村","211421114210");
+        x.cunList.add(c);
+        xianList.add(x);
+
+        x = new xian("万家镇","211421104");
+        c = new cun("万家镇","211421104000");
+        x.cunList.add(c);
+        c = new cun("万家镇居委会","211421104001");
+        x.cunList.add(c);
+        c = new cun("王家庄村","211421104200");
+        x.cunList.add(c);
+        c = new cun("新民村","211421104201");
+        x.cunList.add(c);
+        c = new cun("甘家村","211421104202");
+        x.cunList.add(c);
+        c = new cun("老户村","211421104203");
+        x.cunList.add(c);
+        c = new cun("赵乡村","211421104204");
+        x.cunList.add(c);
+        c = new cun("周家村","211421104205");
+        x.cunList.add(c);
+        c = new cun("杨家屯村","211421104206");
+        x.cunList.add(c);
+        c = new cun("贺家屯村","211421104207");
+        x.cunList.add(c);
+        c = new cun("孟家村","211421104208");
+        x.cunList.add(c);
+        c = new cun("金丝村","211421104209");
+        x.cunList.add(c);
+        c = new cun("万家村","211421104210");
+        x.cunList.add(c);
+        c = new cun("北邱洼村","211421104211");
+        x.cunList.add(c);
+        c = new cun("万寿寺村","211421104212");
+        x.cunList.add(c);
+        c = new cun("老军屯村","211421104213");
+        x.cunList.add(c);
+        c = new cun("苏家村","211421104214");
+        x.cunList.add(c);
+        c = new cun("滨海街","211421104215");
+        x.cunList.add(c);
+        c = new cun("止锚湾村","211421104216");
+        x.cunList.add(c);
+        xianList.add(x);
+
+        x = new xian("沙河镇","211421115");
+        c = new cun("沙河镇","211421115000");
+        x.cunList.add(c);
+        c = new cun("大台山社区","211421115001");
+        x.cunList.add(c);
+        c = new cun("沙河村","211421115200");
+        x.cunList.add(c);
+        c = new cun("马家河村","211421115201");
+        x.cunList.add(c);
+        c = new cun("沙岭杨村","211421115202");
+        x.cunList.add(c);
+        c = new cun("江家岭村","211421115203");
+        x.cunList.add(c);
+        c = new cun("张胡岭村","211421115204");
+        x.cunList.add(c);
+        c = new cun("冯万村","211421115205");
+        x.cunList.add(c);
+        c = new cun("三台子村","211421115206");
+        x.cunList.add(c);
+        c = new cun("前周村","211421115207");
+        x.cunList.add(c);
+        c = new cun("沙河西村","211421115208");
+        x.cunList.add(c);
+        c = new cun("南山村","211421115209");
+        x.cunList.add(c);
+        c = new cun("项家村","211421115210");
+        x.cunList.add(c);
+        c = new cun("宋家沟村","211421115211");
+        x.cunList.add(c);
+        c = new cun("金沟村","211421115212");
+        x.cunList.add(c);
+        c = new cun("横河子村","211421115213");
+        x.cunList.add(c);
+        c = new cun("叶家村","211421115214");
+        x.cunList.add(c);
+        c = new cun("板桥村","211421115215");
+        x.cunList.add(c);
+        c = new cun("营盘山村","211421115216");
+        x.cunList.add(c);
+        c = new cun("叶大屯村","211421115217");
+        x.cunList.add(c);
+        c = new cun("狗河城村","211421115218");
+        x.cunList.add(c);
+        c = new cun("马蹄沟村","211421115219");
+        x.cunList.add(c);
+        c = new cun("桃树沟村","211421115220");
+        x.cunList.add(c);
+        c = new cun("小官帽村","211421115221");
+        x.cunList.add(c);
+        c = new cun("大台山","211421115222");
+        x.cunList.add(c);
+        xianList.add(x);
+
+        x = new xian("秋子沟乡","211421208");
+        c = new cun("秋子沟乡","211421208000");
+        x.cunList.add(c);
+        c = new cun("东山根村","211421208200");
+        x.cunList.add(c);
+        c = new cun("西山村","211421208201");
+        x.cunList.add(c);
+        c = new cun("八家子村","211421208202");
+        x.cunList.add(c);
+        c = new cun("梁杖子村","211421208203");
+        x.cunList.add(c);
+        c = new cun("时杖子村","211421208204");
+        x.cunList.add(c);
+        c = new cun("谭杖子村","211421208205");
+        x.cunList.add(c);
+        c = new cun("腰岭子村","211421208206");
+        x.cunList.add(c);
+        c = new cun("大杨树沟村","211421208207");
+        x.cunList.add(c);
+        xianList.add(x);
+
+        x = new xian("前卫镇","211421107");
+        c = new cun("前卫镇","211421107000");
+        x.cunList.add(c);
+        c = new cun("前卫镇居委会","211421107001");
+        x.cunList.add(c);
+        c = new cun("兴卫居委会","211421115200");
+        x.cunList.add(c);
+        c = new cun("马家河村","211421115201");
+        x.cunList.add(c);
+        c = new cun("沙岭杨村","211421115202");
+        x.cunList.add(c);
+        c = new cun("江家岭村","211421115203");
+        x.cunList.add(c);
+        c = new cun("张胡岭村","211421115204");
+        x.cunList.add(c);
+        c = new cun("冯万村","211421115205");
+        x.cunList.add(c);
+        c = new cun("三台子村","211421115206");
+        x.cunList.add(c);
+        c = new cun("前周村","211421115207");
+        x.cunList.add(c);
+        c = new cun("沙河西村","211421115208");
+        x.cunList.add(c);
+        c = new cun("南山村","211421115209");
+        x.cunList.add(c);
+        c = new cun("项家村","211421115210");
+        x.cunList.add(c);
+        c = new cun("宋家沟村","211421115211");
+        x.cunList.add(c);
+        c = new cun("金沟村","211421115212");
+        x.cunList.add(c);
+        c = new cun("横河子村","211421115213");
+        x.cunList.add(c);
+        c = new cun("叶家村","211421115214");
+        x.cunList.add(c);
+        c = new cun("板桥村","211421115215");
+        x.cunList.add(c);
+        c = new cun("营盘山村","211421115216");
+        x.cunList.add(c);
+        c = new cun("叶大屯村","211421115217");
+        x.cunList.add(c);
+        c = new cun("狗河城村","211421115218");
+        x.cunList.add(c);
+        c = new cun("马蹄沟村","211421115219");
+        x.cunList.add(c);
+        c = new cun("桃树沟村","211421115220");
+        x.cunList.add(c);
+        c = new cun("小官帽村","211421115221");
+        x.cunList.add(c);
+        c = new cun("大台山","211421115222");
+        x.cunList.add(c);
+        xianList.add(x);
+
 
         File file = new File(fileRoute);
         if (!file.exists())
@@ -475,12 +726,23 @@ public class MainActivity extends AppCompatActivity {
             img.setImgpath(picPath);
             img.setImgtype("jpg");
             img.setIsupload(false);
+            img.setX(latitude);
+            img.setY(longitude);
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
             Date date = new Date(System.currentTimeMillis());
             img.setCreateTime(date);
 
             //开始存储信息
             BitmapUtil.saveBitmapInfo(img,null,db);
+        }
+
+        if(requestCode == 1001){
+            startGps = true;
+            Intent gpsService = new Intent(MainActivity.this, GpsService.class);
+            MainActivity.this.startService(gpsService);
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("com.esri.androidStatistics.service.GpsService");
+            MainActivity.this.registerReceiver(gpsReceiver, filter);
         }
     }
 
@@ -547,6 +809,18 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(this, "请到设置-权限管理中开启", Toast.LENGTH_SHORT).show();
                 }
             }
+        }
+    }
+
+
+    public class GpsReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            android.util.Log.i(TAG, "GpsReceiver.onReceive");
+            Bundle bundle = intent.getExtras();
+            latitude = bundle.getDouble("latitude");
+            longitude = bundle.getDouble("longitude");
+            location = bundle.getParcelable("Location");
         }
     }
 }
