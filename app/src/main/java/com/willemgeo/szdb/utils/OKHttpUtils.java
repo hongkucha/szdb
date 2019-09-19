@@ -166,4 +166,22 @@ public class OKHttpUtils {
         }
         return null;
     }
+
+
+    public static void doFindRequest(String url ,List<Img>imgs , Callback callback){
+
+        MultipartBody.Builder bodyBuilder = new MultipartBody.Builder();
+        for (Img img:imgs
+             ) {
+            bodyBuilder.addFormDataPart("uids",img.getUid());
+        }
+        MultipartBody myBody = bodyBuilder.build();
+
+        Request.Builder requestbuilder = new Request.Builder();
+        requestbuilder.url(url).post(myBody);
+        Request request = requestbuilder.build() ;
+
+        Call call = getOkHttpClientInstance().newCall(request);
+        call.enqueue(callback);
+    }
 }

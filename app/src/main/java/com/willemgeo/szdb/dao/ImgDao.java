@@ -45,6 +45,28 @@ public class ImgDao {
             return  new ArrayList<Img>();
         }
     }
+    public int updateLst(List<Img> imgs){
+        try{
+            Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
+            int count = 0;
+            for (Img img:imgs
+                 ) {
+                try {
+                    dao.update(img);
+                    count++;
+                }catch (Exception e){
+
+                }
+            }
+            return 0;
+
+
+        }catch (Exception e){
+            Log.e(TAG,"updateLst"+e.getMessage());
+            e.printStackTrace();
+            return  0;
+        }
+    }
 
 
     public List<Img> findByCun(String cjbm){
@@ -97,5 +119,18 @@ public class ImgDao {
         }
     }
 
+    public void markIsUpload(String uid){
+        try{
+            Dao<Img,Integer> dao= dbHelper.getDao(Img.class);
+            List<Img> lst = dao.queryForEq("uid",uid);
+            if(lst!= null && lst.size()>0){
+                lst.get(0).setIsupload(true);
+                dao.update(lst.get(0));
+            }
+        }catch (Exception e){
+            Log.e(TAG,"markIsUpload"+e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
 }
