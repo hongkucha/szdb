@@ -49,7 +49,7 @@ public class GridAsyncAdapter extends BaseAdapter  {
 
         this.urls = new String[lst.size()];
         for (int i = 0; i < urls.length; i++) {
-            if(lst.get(i).getImgpath().isEmpty()){
+            if((lst.get(i).getImgpath()+"").isEmpty()){
                 urls[i] = lst.get(i).getUid();
             }
             else {
