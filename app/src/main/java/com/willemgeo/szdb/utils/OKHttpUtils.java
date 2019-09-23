@@ -45,9 +45,9 @@ public class OKHttpUtils {
         if (client == null) {
             OkHttpClient.Builder builder = new OkHttpClient.Builder()
                     //设置连接超时等属性,不设置可能会报异常
-                    .connectTimeout(120, TimeUnit.SECONDS)
+                    .connectTimeout(10, TimeUnit.SECONDS)
                     .readTimeout(120, TimeUnit.SECONDS)
-                    .writeTimeout(120, TimeUnit.SECONDS);
+                    .writeTimeout(3600, TimeUnit.SECONDS);
 
             client = builder.build();
         }
@@ -89,7 +89,7 @@ public class OKHttpUtils {
      * @param url
      * @return
      */
-    private static Request getRequest(String url, List<String> fileNames,List<Img> imgs, ProgressListener uiProgressRequestListener) {
+    private static Request getRequest(String url, List<String> fileNames,String imgs, ProgressListener uiProgressRequestListener) {
         Request.Builder builder = new Request.Builder();
         RequestBody body = OKHttpUtils.getRequestBody(fileNames,imgs);
         ProgressRequestBody progressRequestBody= ProgressHelper.addProgressRequestListener( body, uiProgressRequestListener);
@@ -104,7 +104,7 @@ public class OKHttpUtils {
      * @param fileNames 完整的文件路径
      * @return
      */
-    private static RequestBody getRequestBody(List<String> fileNames,List<Img>imgs) {
+    private static RequestBody getRequestBody(List<String> fileNames,String imgs) {
         //创建MultipartBody.Builder，用于添加请求的数据
         MultipartBody.Builder builder = new MultipartBody.Builder();
         for (int i = 0; i < fileNames.size(); i++) { //对文件进行遍历
@@ -113,18 +113,12 @@ public class OKHttpUtils {
             String fileType = getMimeType(file.getName());
             builder.addFormDataPart( //给Builder添加上传的文件
                     "image",  //请求的名字
-                    file.getName(), //文件的文字，服务器端用来解析的
+                    file.getName(), //文件的文字，服务器端用来解析的f
                     RequestBody.create(MediaType.parse(fileType), file) //创建RequestBody，把上传的文件放入
             );
         }
-        if(imgs.size()<1){
-            builder.addFormDataPart("imgs", "");
-        }else {
-            for (int i = 0; i < imgs.size(); i++) { //对文件进行遍历
-                Img img = imgs.get(i);
-                builder.addFormDataPart("imgs", GsonUtil.BeanToJson(img));
-            }
-        }
+
+            builder.addFormDataPart("imgs", imgs);
 
         try {
             builder.addFormDataPart("license", GetLicense()+"");//增加上传验证码
@@ -140,7 +134,7 @@ public class OKHttpUtils {
      * @param fileNames 完整的上传的文件的路径名
      * @param callback OkHttp的回调接口
      */
-    public static void doPostRequest(String url, List<String> fileNames, List<Img> imgs, ProgressListener uiProgressRequestListener, Callback callback) {
+    public static void doPostRequest(String url, List<String> fileNames, String imgs, ProgressListener uiProgressRequestListener, Callback callback) {
         Request request= getRequest(url,fileNames,imgs,uiProgressRequestListener);
         OkHttpClient oc = getOkHttpClientInstance();
 

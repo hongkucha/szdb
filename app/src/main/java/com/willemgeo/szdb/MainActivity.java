@@ -1369,7 +1369,12 @@ public class MainActivity extends AppCompatActivity {
                             == PackageManager.PERMISSION_GRANTED &&
                     ContextCompat.checkSelfPermission(this,
                             Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS)
-                            == PackageManager.PERMISSION_GRANTED) {
+                            == PackageManager.PERMISSION_GRANTED
+                    &&
+                    ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.ACCESS_COARSE_LOCATION)
+                            == PackageManager.PERMISSION_GRANTED
+                    ) {
             } else {
                 Toast.makeText(this,"监督检查需要拍照录音权限",Toast.LENGTH_SHORT).show();
                 //不具有获取权限，需要进行权限申请
@@ -1377,7 +1382,11 @@ public class MainActivity extends AppCompatActivity {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS,
                         Manifest.permission.RECORD_AUDIO,
-                        Manifest.permission.CAMERA}, GET_PERMISSION_REQUEST);
+                        Manifest.permission.CAMERA,
+                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+
+                }, GET_PERMISSION_REQUEST);
             }
         } else {
         }
