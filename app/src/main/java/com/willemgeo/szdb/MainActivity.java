@@ -140,20 +140,24 @@ public class MainActivity extends AppCompatActivity {
      * 初始化GPS服务
      */
     private void initGpsService() {
-        android.util.Log.i(TAG, "initGpsService");
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            Toast.makeText(this, "请开启GPS导航...", Toast.LENGTH_SHORT).show();
-            // 返回开启GPS导航设置界面
-            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-            startActivityForResult(intent, 1001);
-        } else {
-            startGps = true;
-            Intent gpsService = new Intent(MainActivity.this, GpsService.class);
-            MainActivity.this.startService(gpsService);
-            IntentFilter filter = new IntentFilter();
-            filter.addAction("com.esri.androidStatistics.service.GpsService");
-            MainActivity.this.registerReceiver(gpsReceiver, filter);
+        try {
+            android.util.Log.i(TAG, "initGpsService");
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                Toast.makeText(this, "请开启GPS导航...", Toast.LENGTH_SHORT).show();
+                // 返回开启GPS导航设置界面
+                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                startActivityForResult(intent, 1001);
+            } else {
+                startGps = true;
+                Intent gpsService = new Intent(MainActivity.this, GpsService.class);
+                MainActivity.this.startService(gpsService);
+                IntentFilter filter = new IntentFilter();
+                filter.addAction("com.esri.androidStatistics.service.GpsService");
+                MainActivity.this.registerReceiver(gpsReceiver, filter);
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
         }
 
     }
@@ -1290,50 +1294,73 @@ public class MainActivity extends AppCompatActivity {
         // TODO Auto-generated method stub
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE  && resultCode!= 0) {
+            //File file = new File(Environment.getExternalStorageDirectory().getPath()+ "/MICE/IMG/211421100/211421100000/210723196710307218/病例/5bcaad99-f55d-4e23-b536-dd756d35d563.jpg");
+            File file = new File(Environment.getExternalStorageDirectory().getPath()+ "/"+picPath);
+            if(!file.exists()){
+                Toast.makeText(context,"保存异常，请重新拍摄。",Toast.LENGTH_LONG).show();
+                try{
+                    boolean bol = file.delete();
+                }catch (Exception ex){
+                    Log.e("拍照成果无效","拍照成果无效:"+file.getName()+"");
+                }
+
+                return;
+            }
+
 
             Img img = new Img();
             img.setUid(picName);
             try {
                 img.setDbrmc(dbr);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setCjbm(selectedCunCode);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setXjbm(selectedXianCode);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setZjhm(sfz);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setImgpath(picPath);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setImgtype(item[selectType]);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setIsupload(false);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setX(latitude);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 img.setY(longitude);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
             try {
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss");
                 Date date = new Date(System.currentTimeMillis());
                 img.setCreateTime(date);
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
 
             //开始存储信息

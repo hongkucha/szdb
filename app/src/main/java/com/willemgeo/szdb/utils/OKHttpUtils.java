@@ -46,7 +46,7 @@ public class OKHttpUtils {
             OkHttpClient.Builder builder = new OkHttpClient.Builder()
                     //设置连接超时等属性,不设置可能会报异常
                     .connectTimeout(10, TimeUnit.SECONDS)
-                    .readTimeout(120, TimeUnit.SECONDS)
+                    .readTimeout(3600, TimeUnit.SECONDS)
                     .writeTimeout(3600, TimeUnit.SECONDS);
 
             client = builder.build();

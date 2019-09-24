@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -177,29 +178,189 @@ public class GridActivity extends Activity {
                 ImgDao dao = dbHelper.createImgDao();
                 List<Img> imgs = dao.findIsNotUpload();
                 List<String> files = new LinkedList<>();
-                for(Img img : imgs){
+                totalFilesNum = imgs.size();
+                QueueImgs.clear();
+
+                Toast.makeText(getApplicationContext(),"开始上传",Toast.LENGTH_SHORT).show();
+
+                for(Img img : imgs) {
+
                     String filePath = Environment.getExternalStorageDirectory().getPath()+ "/"+img.getImgpath();
-                    File file = new File(filePath);
-                    if(file.exists()){
-                        files.add(filePath);
+                    if(new File(filePath).exists()){
+                        QueueImgs.add(img);
+                    }else {
+                        String str = "";
                     }
                 }
                 bar.setProgress(0);
-                if(imgs!=null && imgs.size()>0) {
+                bar.setMax(QueueImgs.size());
+                uploadNext();
 
-                    v.setEnabled(false);
-                    CountUpload = imgs.size();
-                    upload(files, imgs);
-                }
+
+                v.setEnabled(false);
+
            }catch (Exception ex){
                Log.e("upload",ex.getMessage()+"");
                v.setEnabled(true);
            }
+
+
+
+
         }
     };
 
+    private synchronized void uploadNext( ){
 
-	private void upload(List<String> files , final List<Img>imgs) {
+        int size1 = QueueImgs.size();
+
+        Img img = QueueImgs.poll();
+        int size2 = QueueImgs.size();
+
+        bar.setProgress(Math.abs(totalFilesNum -QueueImgs.size()));
+
+        if(img == null){
+                try{
+                    Toast.makeText(getApplicationContext(),"上传成功",Toast.LENGTH_LONG).show();
+                    finish();
+                    findViewById(R.id.btnupdate).setEnabled(true);
+                }catch (Exception ex){
+
+                }
+            return;
+        }
+
+
+        String filePath = Environment.getExternalStorageDirectory().getPath()+ "/"+img.getImgpath();
+
+        List<String> pFile = new LinkedList<>();
+        List<Img> pImg = new LinkedList<>();
+        pFile.add(filePath);
+        pImg.add(img);
+        upload(pFile ,pImg);
+    }
+
+
+
+    private void upLoad2(List<String> files , final List<Img>imgs) {
+
+
+        //这个是非ui线程回调，不可直接操作UI
+        final ProgressListener progressListener = new ProgressListener() {
+            @Override
+            public void onProgress(long bytesWrite, long contentLength, boolean done) {
+                Log.i("TAG", "bytesWrite:" + bytesWrite);
+                Log.i("TAG", "contentLength" + contentLength);
+                Log.i("TAG", (100 * bytesWrite) / contentLength + " % done ");
+                Log.i("TAG", "done:" + done);
+                Log.i("TAG", "================================");
+            }
+        };
+
+
+        //这个是ui线程回调，可直接操作UI
+        UIProgressListener uiProgressRequestListener = new UIProgressListener() {
+            @Override
+            public void onUIProgress(long bytesWrite, long contentLength, boolean done) {
+
+                //ui层回调,设置当前上传的进度值
+                int progress = (int) ((100 * bytesWrite) / contentLength);
+
+                //bar.setProgress(progress);
+
+            }
+
+            //上传开始
+            @Override
+            public void onUIStart(long bytesWrite, long contentLength, boolean done) {
+                super.onUIStart(bytesWrite, contentLength, done);
+                //Toast.makeText(getApplicationContext(),"开始上传",Toast.LENGTH_SHORT).show();
+            }
+
+            //上传结束
+            @Override
+            public void onUIFinish(long bytesWrite, long contentLength, boolean done) {
+                super.onUIFinish(bytesWrite, contentLength, done);
+                //uploadProgress.setVisibility(View.GONE); //设置进度条不可见
+                //
+                findViewById(R.id.btnupdate).setEnabled(true);
+            }
+        };
+
+        String url = CT_URL_SERVER + CT_URL_UPLOAD;
+
+        StringBuffer StrImg = new StringBuffer();
+        for (Img img: imgs
+                ) {
+            String str = "";
+            str += ( "uid:"+img.getUid()+",");
+            str+=("dbrmc:"+img.getDbrmc()+",");
+            str+=("imgtype:"+img.getImgtype()+",");
+            str+=("imgpath:"+img.getImgpath()+",");
+            str+=("zjhm:"+img.getZjhm()+",");
+            str+=("cjbm:"+img.getCjbm()+",");
+            str+=("xjbm:"+img.getXjbm()+",");
+            str+=("createtime:"+(img.getCreateTime()==null?0:img.getCreateTime().getTime())+",");
+            str+=("x:"+img.getX()+",");
+            str+=("y:"+img.getY());
+            str+="&&&&";
+            StrImg.append(str);
+        }
+
+
+
+        //开始Post请求,上传文件
+        OKHttpUtils.doPostRequest(url, files, StrImg.toString(), uiProgressRequestListener, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                try {
+                    uploadResult=0;
+                    //handler.post(result);
+                    Log.i("TAG", "error------> " + e.getMessage());
+                }catch (Exception ee){
+                    ee.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                Log.i("TAG", "success---->"+response.body().string());
+
+                //上传完成后执行标记已上传
+                OKHttpUtils.doFindRequest(CT_URL_SERVER+ CT_URL_UPLOAD_DONE, imgs,new Callback(){
+
+                    @Override
+                    public void onFailure(Call call, IOException e) {
+                        uploadResult=0;
+                        handler.post(result);
+                    }
+
+                    @Override
+                    public void onResponse(Call call, Response response) throws IOException {
+                        String lst =  response.body().string();
+                        uploadResult=1;
+                        uploadUidsResult =  GsonUtil.GsonToList(lst+"",String.class);
+                        handler.post(result);
+                    }
+                });
+
+
+
+            }
+
+
+        });
+
+    }
+
+    static int totalFilesNum = 0;
+    static int nowFilesNum = 0;
+    static Queue<Img> QueueImgs = new LinkedList<>();
+
+
+
+    private void upload(List<String> files , final List<Img>imgs) {
 
 
 	    //这个是非ui线程回调，不可直接操作UI
@@ -223,7 +384,7 @@ public class GridActivity extends Activity {
                 //ui层回调,设置当前上传的进度值
                 int progress = (int) ((100 * bytesWrite) / contentLength);
 
-                bar.setProgress(progress);
+                //bar.setProgress(progress);
 
             }
 
@@ -231,7 +392,7 @@ public class GridActivity extends Activity {
             @Override
             public void onUIStart(long bytesWrite, long contentLength, boolean done) {
                 super.onUIStart(bytesWrite, contentLength, done);
-                Toast.makeText(getApplicationContext(),"开始上传",Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(),"开始上传",Toast.LENGTH_SHORT).show();
             }
 
             //上传结束
@@ -240,7 +401,7 @@ public class GridActivity extends Activity {
                 super.onUIFinish(bytesWrite, contentLength, done);
                 //uploadProgress.setVisibility(View.GONE); //设置进度条不可见
                 //
-                findViewById(R.id.btnupdate).setEnabled(true);
+
             }
         };
 
@@ -319,39 +480,58 @@ public class GridActivity extends Activity {
         public void run() {
             switch (uploadResult){
                 case 0:
-                    try{
-                        Toast.makeText(getApplicationContext(),"无法连接服务器，上传失败。",Toast.LENGTH_SHORT).show(); }
-                    catch (Exception e1){
-                        e1.printStackTrace();
-                    }
+//                    try{
+//                        Toast.makeText(getApplicationContext(),"无法连接服务器，上传失败。",Toast.LENGTH_SHORT).show(); }
+//                    catch (Exception e1){
+//                        e1.printStackTrace();
+//                    }
+
+
+                    uploadNext();
                     break;
                 case 1:
 
+                    //nowFilesNum++;
+                    //bar.setProgress(nowFilesNum);
+
+
+
                     try{
 
-
-                        if( uploadUidsResult.size() != CountUpload){
-                            Toast.makeText(getApplicationContext(),"无法连接服务器，上传失败。",Toast.LENGTH_SHORT).show();
-
-                        }else {
-                            ImgDao dao = dbHelper.createImgDao();
-                            for (String uid : uploadUidsResult) {
-                                dao.markIsUpload(uid);
-                            }
-
-
-                            Toast.makeText(getApplicationContext(),"上传成功",Toast.LENGTH_LONG).show();
-
-                            finish();
-
+                        ImgDao dao = dbHelper.createImgDao();
+                        for (String uid : uploadUidsResult) {
+                            dao.markIsUpload(uid);
                         }
+
+
+                        uploadNext();
+
+
+
+
+//
+//                        if( uploadUidsResult.size() != CountUpload){
+//                            Toast.makeText(getApplicationContext(),"无法连接服务器，上传失败。",Toast.LENGTH_SHORT).show();
+//
+//                        }else {
+//                            ImgDao dao = dbHelper.createImgDao();
+//                            for (String uid : uploadUidsResult) {
+//                                dao.markIsUpload(uid);
+//                            }
+//
+//
+//                            Toast.makeText(getApplicationContext(),"上传成功",Toast.LENGTH_LONG).show();
+//
+//                            finish();
+//
+//                        }
 
                     }catch (Exception ex){
                         Log.e("标记已上传",""+ex.getMessage());
                     }
                     break;
             }
-            findViewById(R.id.btnupdate).setEnabled(true);
+
         }
     };
 
