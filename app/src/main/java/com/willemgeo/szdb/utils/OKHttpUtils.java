@@ -7,6 +7,7 @@ package com.willemgeo.szdb.utils;
 
 import android.util.Log;
 
+import com.willemgeo.szdb.base.Constants;
 import com.willemgeo.szdb.bean.Img;
 
 import java.io.File;
@@ -121,7 +122,7 @@ public class OKHttpUtils {
             builder.addFormDataPart("imgs", imgs);
 
         try {
-            builder.addFormDataPart("license", GetLicense()+"");//增加上传验证码
+            builder.addFormDataPart("license", Constants.imei); //GetLicense()+"");//增加上传验证码
         }catch (Exception ex){
             Log.e("license",ex.getMessage()+"");
         }

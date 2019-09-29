@@ -38,6 +38,27 @@ public class Img {
     @DatabaseField(columnName = "y")
     double y = 0;
 
+    @DatabaseField(columnName = "syrzjhm")
+    String syrzjhm = "";
+    @DatabaseField(columnName = "syrmc")
+    String syrmc = "";
+
+    public String getSyrzjhm() {
+        return syrzjhm;
+    }
+
+    public void setSyrzjhm(String syrzjhm) {
+        this.syrzjhm = syrzjhm;
+    }
+
+    public String getSyrmc() {
+        return syrmc;
+    }
+
+    public void setSyrmc(String syrmc) {
+        this.syrmc = syrmc;
+    }
+
     public String getUid() {
         return uid;
     }

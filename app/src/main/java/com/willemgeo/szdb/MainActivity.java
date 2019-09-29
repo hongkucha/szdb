@@ -11,6 +11,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -27,16 +29,19 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.willemgeo.szdb.adapter.CunSpinnerAdapter;
 import com.willemgeo.szdb.adapter.XianSpinnerAdapter;
+import com.willemgeo.szdb.base.Constants;
 import com.willemgeo.szdb.bean.Img;
 import com.willemgeo.szdb.bean.cun;
 import com.willemgeo.szdb.bean.xian;
@@ -48,6 +53,10 @@ import com.willemgeo.szdb.utils.DBHelper;
 import com.willemgeo.szdb.utils.JIdCardUtils;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.lang.annotation.ElementType;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,8 +76,19 @@ public class MainActivity extends AppCompatActivity {
     public EditText sfz_txt;
     public String dbr="";
     public String sfz="";
+
+    public String syr = "";
+    public String syr_sfz = "";
+
     public int selectType;
     public List<xian> xianList;
+
+    public RadioButton radioButtonDBR;
+    public RadioButton radioButtonSYR;
+
+    public EditText syr_txt;
+    public EditText syr_sfz_txt;
+
 
     public String selectedXianName;
     public String selectedXianCode;
@@ -107,6 +127,30 @@ public class MainActivity extends AppCompatActivity {
         dbr_txt = (EditText) this.findViewById(R.id.dbr_name);
         sfz_txt = (EditText) this.findViewById(R.id.sfz_number);
 
+        radioButtonDBR = this.findViewById(R.id.rdo_dbr);
+        radioButtonDBR.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                syr_txt.setText("");
+                syr_txt.setEnabled(false);
+                syr_sfz_txt.setText("");
+                syr_sfz_txt.setEnabled(false);
+            }
+        });
+
+        radioButtonSYR = this.findViewById(R.id.rdo_syr);
+        radioButtonSYR.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                syr_txt.setEnabled(true);
+                syr_sfz_txt.setEnabled(true);
+            }
+        });
+
+        syr_txt = this.findViewById(R.id.dbr_name_syr);
+        syr_sfz_txt = this.findViewById(R.id.sfz_number_syr);
+
+
 
         //拍照按钮
         ((Button) this.findViewById(R.id.camera_btn)).setOnClickListener(camera_btn_Click);
@@ -115,6 +159,8 @@ public class MainActivity extends AppCompatActivity {
         btnGrid.setOnClickListener(grid_btn_click);
 
         initGpsService();
+
+
 
         initData();
 
@@ -134,8 +180,69 @@ public class MainActivity extends AppCompatActivity {
             Log.e("ORM",""+ex.getMessage());
         }
 
+        initDatabase();
+
+        Constants.imei = getIMEI(getApplicationContext());
+
     }
 
+
+
+    private void initDatabase() {
+
+        SQLiteDatabase sqlitedb = db.getWritableDatabase();
+        try {
+            try {
+                //if (isFieldExist(sqlitedb, "img", "syrzjhm")) {
+                sqlitedb.execSQL("ALTER  TABLE   img  ADD COLUMN  syrzjhm varchar ");
+                //}
+            }catch (Exception ex){
+                ex.printStackTrace();
+                Log.e("数据库存在列","syrzjhm");
+            }
+
+            try {
+                //if (isFieldExist(sqlitedb, "img", "syrmc")) {
+                sqlitedb.execSQL("ALTER  TABLE   img  ADD COLUMN  syrmc varchar ");
+                //}
+            }catch (Exception ex){
+                ex.printStackTrace();
+                Log.e("数据库存在列","syrmc");
+            }
+        }catch (Exception ex){
+
+            ex.printStackTrace();
+
+        }
+
+    }
+
+
+    /**
+     * 判断某表里某字段是否存在
+     *
+     * @param db
+     * @param tableName
+     * @param fieldName
+     * @return
+     */
+    private boolean isFieldExist(SQLiteDatabase db, String tableName, String fieldName) {
+        String queryStr = "select sql from sqlite_master where type = 'table' and name = '%s'";
+        queryStr = String.format(queryStr, tableName);
+        Cursor c = db.rawQuery(queryStr, null);
+        String tableCreateSql = null;
+        try {
+            if (c != null && c.moveToFirst()) {
+                tableCreateSql = c.getString(c.getColumnIndex("sql"));
+            }
+        } finally {
+            if (c != null)
+                c.close();
+        }
+        if (tableCreateSql != null && tableCreateSql.contains(fieldName))
+            return true;
+        return false;
+    }
     /**
      * 初始化GPS服务
      */
@@ -1136,6 +1243,34 @@ public class MainActivity extends AppCompatActivity {
         x.cunList.add(c);
         xianList.add(x);
 
+try {
+
+        File file = new File(Environment.getExternalStorageDirectory().getPath()+File.separator+"xzq.txt");
+        if (!file.exists()) {
+            File dir = new File(file.getParent());
+            dir.mkdirs();
+            file.createNewFile();
+
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for(xian x1 : xianList){
+
+            stringBuilder.append(x1.XianCode +" " + x1.XianName+"/r/n");
+            for(cun c1: x1.cunList){
+                stringBuilder.append(c1.CunCode +" "+c1.CunName +"/r/n");
+            }
+        }
+        FileOutputStream outStream = new FileOutputStream(file);
+        outStream.write(stringBuilder.toString().getBytes());
+        outStream.close();
+
+} catch (Exception e) {
+
+    e.printStackTrace();
+
+}
+
 
         File file = new File(fileRoute);
         if (!file.exists())
@@ -1209,15 +1344,32 @@ public class MainActivity extends AppCompatActivity {
             /*获取低保人信息和身份证信息*/
                 dbr = dbr_txt.getText().toString();
                 sfz = sfz_txt.getText().toString();
+
+                syr = syr_txt.getText().toString();
+                syr_sfz = syr_sfz_txt.getText().toString();
+
                 if(dbr.trim().isEmpty() || sfz.trim().isEmpty()){
-                    Toast.makeText(getApplicationContext(),"请先填写身份信息。",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),"请先填写低保人身份信息。",Toast.LENGTH_SHORT).show();
                     return;
                 }
                 JIdCardUtils utils = new JIdCardUtils();
                 if(utils.validate(sfz.trim()) == false){
-                    Toast.makeText(getApplicationContext(),"身份证格式存在错误！",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),"低保人身份证格式存在错误！",Toast.LENGTH_SHORT).show();
                     return;
                 }
+                if(radioButtonSYR.isChecked()){
+
+                    if(syr.trim().isEmpty() || syr_sfz.trim().isEmpty()){
+                        Toast.makeText(getApplicationContext(),"请先填写赡养人身份信息。",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if(utils.validate(syr_sfz.trim()) == false){
+                        Toast.makeText(getApplicationContext(),"赡养人身份证格式存在错误！",Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                }
+
 
                 AlertDialog.Builder singleDialog = new AlertDialog.Builder(MainActivity.this);
                 singleDialog.setIcon(R.mipmap.ic_launcher_round);
@@ -1234,7 +1386,16 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(MainActivity.this, "你选择了：" + item[selectType], Toast.LENGTH_SHORT).show();
 
                     /*判断身份证路径层级是否存在*/
-                        String url = fileRoute + "/" + selectedXianCode + "/" + selectedCunCode + "/" + sfz;
+
+
+                        String url = "";
+                        if(radioButtonDBR.isChecked()) {
+                            url = fileRoute + "/" + selectedXianCode + "/" + selectedCunCode + "/" + sfz;
+                        }else {
+                            url = fileRoute + "/" + selectedXianCode + "/" + selectedCunCode + "/" + syr_sfz;
+                        }
+
+
                         File file = new File(url);
                         if (!file.exists())
                             file.mkdirs();
@@ -1250,7 +1411,13 @@ public class MainActivity extends AppCompatActivity {
 
 
                         picName = java.util.UUID.randomUUID().toString();
-                        picPath = CT_DATA_PATH + CT_DATA_PATH_IMG + "/" + selectedXianCode + "/" + selectedCunCode + "/" + sfz + "/" + item[selectType] + "/" + picName + ".jpg";
+
+                        if(radioButtonDBR.isChecked()) {
+                            picPath = CT_DATA_PATH + CT_DATA_PATH_IMG + "/" + selectedXianCode + "/" + selectedCunCode + "/" + sfz + "/" + item[selectType] + "/" + picName + ".jpg";
+                        }else {
+                            picPath = CT_DATA_PATH + CT_DATA_PATH_IMG + "/" + selectedXianCode + "/" + selectedCunCode + "/" + syr_sfz + "/" + item[selectType] + "/" + picName + ".jpg";
+                        }
+
                         //Uri uri = Uri.fromFile(new File(url+"/"+picName+".jpg"));//根据图片路径生成一个uri
                         File photo = new File(url + "/" + picName + ".jpg");
 
@@ -1363,6 +1530,19 @@ public class MainActivity extends AppCompatActivity {
                 ex.printStackTrace();
             }
 
+            if(radioButtonSYR.isChecked()){
+                try {
+                    img.setSyrmc(syr);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                try {
+                    img.setSyrzjhm(syr_sfz);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+            }
             //开始存储信息
             BitmapUtil.saveBitmapInfo(img, null, db);
         }
@@ -1401,6 +1581,11 @@ public class MainActivity extends AppCompatActivity {
                     ContextCompat.checkSelfPermission(this,
                             Manifest.permission.ACCESS_COARSE_LOCATION)
                             == PackageManager.PERMISSION_GRANTED
+                    &&
+                    ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.READ_PHONE_STATE)
+                            == PackageManager.PERMISSION_GRANTED
+
                     ) {
             } else {
                 Toast.makeText(this,"监督检查需要拍照录音权限",Toast.LENGTH_SHORT).show();
@@ -1411,7 +1596,8 @@ public class MainActivity extends AppCompatActivity {
                         Manifest.permission.RECORD_AUDIO,
                         Manifest.permission.CAMERA,
                         Manifest.permission.ACCESS_COARSE_LOCATION,
-                        Manifest.permission.ACCESS_FINE_LOCATION
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.READ_PHONE_STATE
 
                 }, GET_PERMISSION_REQUEST);
             }
@@ -1475,5 +1661,48 @@ public class MainActivity extends AppCompatActivity {
             }else {
                 super.onBackPressed();
             }
+    }
+
+
+    /**
+     * 获取手机IMEI
+     *
+     * @param context
+     * @return
+     */
+    public static final String getIMEI(Context context) {
+        try {
+            //实例化TelephonyManager对象
+            TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            //获取IMEI号
+
+
+            String imei = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                imei = telephonyManager.getImei();
+            } else {
+                imei = telephonyManager.getDeviceId();
+            }
+            //在次做个验证，也不是什么时候都能获取到的啊
+            if (imei == null) {
+                imei = "";
+            }
+            return imei;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+
+    }
+
+    public static String getIMEI(Context context, int slotId) {
+        try {
+            TelephonyManager manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+            Method method = manager.getClass().getMethod("getImei", int.class);
+            String imei = (String) method.invoke(manager, slotId);
+            return imei;
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

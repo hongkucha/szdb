@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -419,6 +420,12 @@ public class GridActivity extends Activity {
             str+=("cjbm:"+img.getCjbm()+",");
             str+=("xjbm:"+img.getXjbm()+",");
             str+=("createtime:"+(img.getCreateTime()==null?0:img.getCreateTime().getTime())+",");
+
+            str+=("syrmc:"+img.getSyrmc()+",");
+            str+=("syrzjhm:"+img.getZjhm()+",");
+
+            str+=("syrzjhm:"+img.getZjhm()+",");
+
             str+=("x:"+img.getX()+",");
             str+=("y:"+img.getY());
             str+="&&&&";
@@ -584,6 +591,8 @@ public class GridActivity extends Activity {
 //
 //        }
 //    };
+
+
 
 
 }

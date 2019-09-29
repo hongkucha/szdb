@@ -19,4 +19,6 @@ public class Constants {
     //public static final String CT_URL_SERVER ="http://10.0.2.2:8818";
     public static final String CT_URL_UPLOAD ="/imgs";
     public static final String CT_URL_UPLOAD_DONE ="/imgs/done";
+
+    public static String imei = "";
 }

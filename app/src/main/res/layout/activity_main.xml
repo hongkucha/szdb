@@ -15,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true">
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -69,6 +70,20 @@
             <TableLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+                <RadioGroup>
+
+                    <RadioButton
+                        android:id="@+id/rdo_dbr"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="采集低保人信息"
+                        android:checked="true"/>
+                    <RadioButton
+                        android:id="@+id/rdo_syr"
+                        android:text="采集赡养人信息"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </RadioGroup>
                 <TableRow>
                     <TextView
                         android:layout_width="wrap_content"
@@ -85,6 +100,8 @@
                         android:layout_weight="10"
                         android:textSize="15dp"/>
                 </TableRow>
+
+
                 <TableRow>
                     <TextView
                         android:layout_width="wrap_content"
@@ -101,7 +118,47 @@
                         android:layout_weight="10"
                         android:textSize="15dp"/>
                 </TableRow>
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="赡养人姓名"
+                        android:layout_weight="1"
+                        android:textColor="@color/black"
+                        android:textSize="15dp" />
+                    <EditText
+                        android:id="@+id/dbr_name_syr"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorAccent"
+                        android:layout_weight="10"
+                        android:textSize="15dp"
+                        android:enabled="false"/>
+                </TableRow>
+
+
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/black"
+                        android:layout_weight="1"
+                        android:textSize="15dp"
+                        android:text="身份证号"/>
+                    <EditText
+                        android:id="@+id/sfz_number_syr"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorAccent"
+                        android:layout_weight="10"
+                        android:textSize="15dp"
+                        android:enabled="false"
+                        />
+                </TableRow>
             </TableLayout>
+
+
+
             <TableLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -117,7 +174,8 @@
                         android:textSize="15dp"
                         android:drawableStart="@drawable/sy_widget_button_camera"
                         android:paddingLeft="50dp"
-                        android:paddingRight="50dp"/>
+                        android:paddingRight="50dp"
+                        android:drawableLeft="@drawable/sy_widget_button_camera" />
                 </TableRow>
             </TableLayout>
             <Button

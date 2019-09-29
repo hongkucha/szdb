@@ -49,9 +49,9 @@ public class CunSpinnerAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         if(convertView == null){
             convertView = mLayoutInflater.inflate(R.layout.sy_spinner_item, null);
-            ((TextView)convertView.findViewById(R.id.sy_spinner_text)).setText(this.mList.get(position).CunName);
-            convertView.setTag(this.mList.get(position));
         }
+        ((TextView)convertView.findViewById(R.id.sy_spinner_text)).setText(this.mList.get(position).CunName);
+        convertView.setTag(this.mList.get(position));
         return convertView;
     }
 }
